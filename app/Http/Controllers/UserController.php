@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
 class UserController extends Controller
@@ -41,5 +42,18 @@ class UserController extends Controller
                 'id' => $user->id
             ]
         ]);
+    }
+
+    public function login(Request $request)
+    {
+    $credentials = $request->only('email', 'password');
+
+    if (Auth::attempt($credentials)) {
+        $user = Auth::user();
+        $token = $user->createToken('MyApp')->accessToken;
+        return response()->json(['token' => $token,  'status' => true], 200);
+    }
+
+    return response()->json(['error' => 'Unauthorized'], 401);
     }
 }
