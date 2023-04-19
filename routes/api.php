@@ -19,6 +19,11 @@ Route::prefix('/user')->group(function () {
     Route::post('/login', 'App\Http\Controllers\UserController@login');
 });
 
+Route::prefix('/wallet')->group(function () {
+    Route::post('/new', 'App\Http\Controllers\WalletController@new');
+    Route::post('/get', 'App\Http\Controllers\WalletController@get');
+});
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
