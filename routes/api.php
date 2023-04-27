@@ -19,6 +19,10 @@ Route::prefix('/user')->group(function () {
     Route::post('/login', 'App\Http\Controllers\UserController@login');
 });
 
+Route::prefix('/trx')->group(function () {
+    Route::post('/internal/new', 'App\Http\Controllers\TransactionController@newInternal');
+});
+
 Route::prefix('/wallet')->group(function () {
     Route::post('/new', 'App\Http\Controllers\WalletController@new');
     Route::post('/get', 'App\Http\Controllers\WalletController@get');
