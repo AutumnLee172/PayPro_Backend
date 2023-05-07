@@ -22,6 +22,7 @@ Route::prefix('/user')->group(function () {
 Route::prefix('/trx')->group(function () {
     Route::post('/internal/new', 'App\Http\Controllers\TransactionController@newInternal');
     Route::post('/external/new', 'App\Http\Controllers\TransactionController@newExternal');
+    Route::post('/get', 'App\Http\Controllers\TransactionController@getTransactions');
 });
 
 Route::prefix('/wallet')->group(function () {

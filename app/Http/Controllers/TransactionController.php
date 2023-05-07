@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Wallet;
 use App\Models\Transaction;
 use DB;
+use Carbon\Carbon;
 
 class TransactionController extends Controller
 {
@@ -112,6 +113,30 @@ class TransactionController extends Controller
         return response()->json([
             'status' => true,
             'created' => $created,
+            'error' => $error,
+        ]);
+    }
+
+    public function getTransactions(Request $request){
+        $walletID = ($request->has('walletid') && !empty($request->get('walletid'))) ? $request->get('walletid') : '';
+        $error = "";
+        try {
+            $trx = Transaction::orderBy('id', 'desc')->where('walletid', $walletID)->orWhere(function ($query) use ($walletID) {
+                $query->where('to_account', $walletID)
+                      ->where('to_wallet_type', 'Linked PayPro Wallet');
+            })->get();
+            foreach ($trx as $t) {
+                $formattedDate = Carbon::parse($t->created_at)->format('Y-m-d');
+                // $t->created_at = $formattedDate;
+                $t->date = date("Y-m-d H:i:s", strtotime($t->created_at));
+
+            }
+        }catch (Exception $e) {
+            $error = $e;
+        }
+        return response()->json([
+            'status' => true,
+            'data' => $trx,
             'error' => $error,
         ]);
     }
