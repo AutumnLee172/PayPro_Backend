@@ -124,6 +124,9 @@ class TransactionController extends Controller
             $trx = Transaction::orderBy('id', 'desc')->where('walletid', $walletID)->orWhere(function ($query) use ($walletID) {
                 $query->where('to_account', $walletID)
                       ->where('to_wallet_type', 'Linked PayPro Wallet');
+            })->orWhere(function ($query) use ($walletID) {
+                $query->where('to_account', $walletID)
+                      ->where('transaction_type', 'Internal');
             })->get();
             foreach ($trx as $t) {
                 $formattedDate = Carbon::parse($t->created_at)->format('Y-m-d');
