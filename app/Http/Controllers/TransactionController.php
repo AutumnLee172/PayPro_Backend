@@ -132,7 +132,7 @@ class TransactionController extends Controller
                 $formattedDate = Carbon::parse($t->created_at)->format('Y-m-d');
                 // $t->created_at = $formattedDate;
                 $t->date = date("Y-m-d H:i:s", strtotime($t->created_at));
-
+                $t->amount = number_format((float)$t->amount, 2, '.', '');
             }
         }catch (Exception $e) {
             $error = $e;
