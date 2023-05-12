@@ -30,6 +30,10 @@ Route::prefix('/wallet')->group(function () {
     Route::post('/get', 'App\Http\Controllers\WalletController@get');
 });
 
+Route::prefix('/notification')->group(function () {
+    Route::post('/get', 'App\Http\Controllers\NotificationController@get');
+});
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });

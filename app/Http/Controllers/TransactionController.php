@@ -7,6 +7,7 @@ use App\Models\Wallet;
 use App\Models\Transaction;
 use DB;
 use Carbon\Carbon;
+use App\Http\Controllers\NotificationController;
 
 class TransactionController extends Controller
 {
@@ -37,6 +38,7 @@ class TransactionController extends Controller
             if($transaction->save() && $from_wallet->save() && $to_wallet->save()){
                 DB::commit();
                 $created = true;
+                NotificationController::new($request->get('userid'), "You have successfully transferred RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " . $to_wallet->wallet_type ." (Internal Transaction).");
             }else{
                 DB::rollback();
                 $created = false;
@@ -92,6 +94,7 @@ class TransactionController extends Controller
                 if($transaction->save() && $from_wallet->save() && $to_wallet->save()){
                     DB::commit();
                     $created = true;
+                    NotificationController::new($request->get('userid'), "You have successfully transferred RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " . $to_wallet->wallet_type ." (External Transaction).");
                 }else{
                     DB::rollback();
                     $created = false;
@@ -100,6 +103,7 @@ class TransactionController extends Controller
                 if($transaction->save() && $from_wallet->save()){
                     DB::commit();
                     $created = true;
+                    NotificationController::new($request->get('userid'), "You have successfully transferred RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " .$request->get('to_account') ." (External Transaction).");
                 }else{
                     DB::rollback();
                     $created = false;

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Wallet;
+use App\Http\Controllers\NotificationController;
 
 class WalletController extends Controller
 {
@@ -18,6 +19,7 @@ class WalletController extends Controller
             $wallet->balance = number_format((float)rand(50000, 500000) / 100, 2, '.', '');
             if($wallet->save()){
                 $created = true;
+                NotificationController::new($request->get('userid'), "You have successfully added a " . $request->get('walletname') ." wallet to your account.");
             }else{
                 $created = false;
             }  
