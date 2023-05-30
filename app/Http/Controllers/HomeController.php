@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Wallet;
 use App\Models\Transaction;
 use App\Models\Notification;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
@@ -27,6 +28,27 @@ class HomeController extends Controller
         return response()->json([
             'status' => true,
             'data' => $notifications
+        ]);
+    }
+
+    public function getChartData(Request $request){
+        $userid = $request->get('userid');
+        $startDate = Carbon::now()->subDays(30)->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+        $trx = Transaction::where('userid',$userid)->where('transaction_type','External') ->whereBetween('created_at', [$startDate, $endDate])->selectRaw("UNIX_TIMESTAMP(DATE(created_at)) * 1000 as days")->selectRaw('sum(amount) as sum')->groupBy('days')->get();
+        
+        // $formating = $trx->map(function ($item) {
+        //     return [
+        //         $item->days,
+        //         $item->sum
+        //     ];
+        // });
+
+        // $result = $formating->toJson();
+        
+        return response()->json([
+            'status' => true,
+            'data' => $trx
         ]);
     }
 }

@@ -37,6 +37,7 @@ Route::prefix('/notification')->group(function () {
 Route::prefix('/home')->group(function () {
     Route::post('/getWalletsValue', 'App\Http\Controllers\HomeController@getWalletsValue');
     Route::post('/getLatestActivities', 'App\Http\Controllers\HomeController@getLatestActivities');
+    Route::post('/getChartData', 'App\Http\Controllers\HomeController@getChartData');
 });
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
