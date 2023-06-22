@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('/user')->group(function () {
     Route::post('/register', 'App\Http\Controllers\UserController@register');
+    Route::post('/merchant/register', 'App\Http\Controllers\UserController@register_merchant');
     Route::post('/login', 'App\Http\Controllers\UserController@login');
 });
 
@@ -38,6 +39,13 @@ Route::prefix('/home')->group(function () {
     Route::post('/getWalletsValue', 'App\Http\Controllers\HomeController@getWalletsValue');
     Route::post('/getLatestActivities', 'App\Http\Controllers\HomeController@getLatestActivities');
     Route::post('/getChartData', 'App\Http\Controllers\HomeController@getChartData');
+});
+
+Route::prefix('/biometric')->group(function () {
+    Route::post('/register', 'App\Http\Controllers\BiometricController@registerBiometric');
+    Route::post('/check', 'App\Http\Controllers\BiometricController@checkifPending');
+    Route::post('/approve', 'App\Http\Controllers\BiometricController@approve');
+    Route::post('/decline', 'App\Http\Controllers\BiometricController@decline');
 });
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
