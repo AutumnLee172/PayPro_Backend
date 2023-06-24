@@ -24,6 +24,7 @@ Route::prefix('/trx')->group(function () {
     Route::post('/internal/new', 'App\Http\Controllers\TransactionController@newInternal');
     Route::post('/external/new', 'App\Http\Controllers\TransactionController@newExternal');
     Route::post('/get', 'App\Http\Controllers\TransactionController@getTransactions');
+    Route::post('/pay', 'App\Http\Controllers\TransactionController@biometricPayment');
 });
 
 Route::prefix('/wallet')->group(function () {

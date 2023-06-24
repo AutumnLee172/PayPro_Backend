@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Wallet;
 use App\Models\Transaction;
-use DB;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\BiometricController;
 
 class TransactionController extends Controller
 {
@@ -144,6 +146,61 @@ class TransactionController extends Controller
         return response()->json([
             'status' => true,
             'data' => $trx,
+            'error' => $error,
+        ]);
+    }
+
+    public function biometricPayment(Request $request){
+        $status = false;
+        $error = "";
+        $PayerEmail = ($request->has('payeremail') && !empty($request->get('payeremail'))) ? $request->get('payeremail') : '';
+        $PayeeEmail = ($request->has('payeeemail') && !empty($request->get('payeeemail'))) ? $request->get('payeeemail') : '';
+
+        DB::beginTransaction();
+        try{
+            $payerWallet = BiometricController::getPayerWallet($PayerEmail);
+            $payeeId = User::where('email', $PayeeEmail)->pluck('id')->first();
+
+            if($payerWallet->preferred_wallet_id == "null" || $payerWallet->preferred_wallet_id == ""){
+                $error = "User has not set its preferred wallet yet.";
+            }else{
+               //wallet balance update
+                $from_wallet = Wallet::find($payerWallet->preferred_wallet_id);
+                $from_wallet->balance = $from_wallet->balance - (float) $request->get('amount');
+
+                $to_wallet = Wallet::where('userid', $payeeId)->first();
+                $to_wallet->balance = $to_wallet->balance + (float) $request->get('amount');
+                
+                //new transaction
+                $transaction = new Transaction;
+                $transaction->userid = $payerWallet->userid;
+                $transaction->walletid = $from_wallet->id;
+                $transaction->wallet_type = $from_wallet->wallet_type;
+                $transaction->amount = $request->get('amount');
+                $transaction->to_account = $to_wallet->id;
+                $transaction->to_wallet_type = $to_wallet->wallet_type;
+                $transaction->reference = ($request->has('reference') && !empty($request->get('reference'))) ? $request->get('reference') : '';
+                $transaction->transaction_type = 'External';
+
+                if($transaction->save() && $from_wallet->save() && $to_wallet->save()){
+                    DB::commit();
+                    $status = true;
+                    NotificationController::new($payerWallet->userid, "You have successfully paid RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " . $to_wallet->wallet_type ." (Biometric Payment).");
+                }else{
+                    DB::rollback();
+                    $created = false;
+                }
+                
+            }
+
+        } 
+        catch (Exception $e) {
+            $error = $e;
+        }
+
+        return response()->json([
+            'status' => $status,
+            'data' => $transaction,
             'error' => $error,
         ]);
     }

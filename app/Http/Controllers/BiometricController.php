@@ -89,4 +89,11 @@ class BiometricController extends Controller
             'deleted' => $deleted,
         ]);
     }
+
+    public function getPayerWallet(String $email){
+        $hash = hash('sha256', $email);
+        $wallet = Biometric::where('hash', $hash)->first();
+
+        return $wallet;
+    }
 }
