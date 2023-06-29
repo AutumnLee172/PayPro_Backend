@@ -178,7 +178,7 @@ class TransactionController extends Controller
                 $transaction->wallet_type = $from_wallet->wallet_type;
                 $transaction->amount = $request->get('amount');
                 $transaction->to_account = $to_wallet->id;
-                $transaction->to_wallet_type = $to_wallet->wallet_type;
+                $transaction->to_wallet_type = "Biometric";
                 $transaction->reference = ($request->has('reference') && !empty($request->get('reference'))) ? $request->get('reference') : '';
                 $transaction->transaction_type = 'External';
 
@@ -204,4 +204,33 @@ class TransactionController extends Controller
             'error' => $error,
         ]);
     }
+
+    public function getTransactions_merchant(Request $request){
+        $status = false;
+        $email = ($request->has('email') && !empty($request->get('email'))) ? $request->get('email') : '';
+        $merchant_id = User::where('email', $email)->pluck('id')->first();
+        $merchant_wallet = Wallet::where('userid', $merchant_id)->first();
+        $error = "";
+        try {
+            $trx = Transaction::join('users', 'transactions.userid', '=', 'users.id')->
+            orderBy('transactions.id', 'desc')->where('transactions.to_account', $merchant_wallet->id)->where('transactions.to_wallet_type', 'Biometric')
+            ->select('transactions.*', 'users.name')
+            ->get();
+            foreach ($trx as $t) {
+                $formattedDate = Carbon::parse($t->created_at)->format('Y-m-d');
+                // $t->created_at = $formattedDate;
+                $t->date = date("Y-m-d H:i:s", strtotime($t->created_at));
+                $t->amount = number_format((float)$t->amount, 2, '.', '');
+            }
+            $status = true;
+        }catch (Exception $e) {
+            $error = $e;
+        }
+        return response()->json([
+            'status' => $status,
+            'data' => $trx,
+            'error' => $error,
+        ]);
+    }
+
 }
