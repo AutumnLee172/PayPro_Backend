@@ -101,4 +101,72 @@ class UserController extends Controller
         ]);
     }
 
+    public function update_username(Request $request){
+        $updated = false;
+        $error = "";
+        try {
+        $email = ($request->has('email') && !empty($request->get('email'))) ? $request->get('email') : '';
+        $newUsername = ($request->has('username') && !empty($request->get('username'))) ? $request->get('username') : '';
+
+        $user = User::where('email', $email)->first();
+        $user->name = $newUsername;
+        if($user->save()){
+            $updated = true;
+        }else{
+            $updated = false;
+        }  
+        } catch (Throwable $e) {
+            $error = $e;
+        }
+     
+        return response()->json([
+            'status' => true,
+            'updated' => $updated,
+            'error' => $error,
+        ]);
+    }
+
+    public function update_password(Request $request){
+        $updated = false;
+        $error = "";
+        try {
+        $email = ($request->has('email') && !empty($request->get('email'))) ? $request->get('email') : '';
+        $password = ($request->has('password') && !empty($request->get('password'))) ? $request->get('password') : '';
+
+        $user = User::where('email', $email)->first();
+        $user->password = bcrypt($password);
+        if($user->save()){
+            $updated = true;
+        }else{
+            $updated = false;
+        }  
+        } catch (Throwable $e) {
+            $error = $e;
+        }
+     
+        return response()->json([
+            'status' => true,
+            'updated' => $updated,
+            'error' => $error,
+        ]);
+    }
+
+    public function getUsername(Request $request){
+        $error = "";
+        try {
+            $email = ($request->has('email') && !empty($request->get('email'))) ? $request->get('email') : '';
+    
+            $user = User::where('email', $email)->first();
+            
+        } catch (Throwable $e) {
+            $error = $e;
+        }
+
+        return response()->json([
+            'status' => true,
+            'username' => $user->name,
+            'error' => $error,
+        ]);
+    }
+
 }
