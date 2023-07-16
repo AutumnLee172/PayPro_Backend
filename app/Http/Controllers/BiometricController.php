@@ -96,4 +96,21 @@ class BiometricController extends Controller
 
         return $wallet;
     }
+
+    public function setPreferredWallet(Request $request){
+        $updated = false;
+        $biometric = Biometric::where('userid', $request->get('userid'))->first();
+        $biometric->preferred_wallet_id = $request->get('walletid');
+
+        if($biometric->save()){
+            $updated = true;
+        }else{
+            $updated = false;
+        }  
+
+        return response()->json([
+            'status' => true,
+            'updated' => $updated,
+        ]);
+    }
 }

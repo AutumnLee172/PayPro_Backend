@@ -51,6 +51,7 @@ Route::prefix('/biometric')->group(function () {
     Route::post('/check', 'App\Http\Controllers\BiometricController@checkifPending');
     Route::post('/approve', 'App\Http\Controllers\BiometricController@approve');
     Route::post('/decline', 'App\Http\Controllers\BiometricController@decline');
+    Route::post('/set', 'App\Http\Controllers\BiometricController@setPreferredWallet');
 });
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
