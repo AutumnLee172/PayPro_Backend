@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('/user')->group(function () {
     Route::post('/register', 'App\Http\Controllers\UserController@register');
     Route::post('/merchant/register', 'App\Http\Controllers\UserController@register_merchant');
-    Route::post('/login', 'App\Http\Controllers\UserController@login');
+    Route::post('/login', 'App\Http\Controllers\UserController@login');    
+    Route::post('/login_merchant', 'App\Http\Controllers\UserController@login_merchant');
     Route::post('/update_username', 'App\Http\Controllers\UserController@update_username');
     Route::post('/update_password', 'App\Http\Controllers\UserController@update_password');
     Route::post('/getUsername', 'App\Http\Controllers\UserController@getUsername');

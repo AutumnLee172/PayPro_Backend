@@ -21,32 +21,34 @@ class TransactionController extends Controller
         try {
             //wallet balance update
             $from_wallet = Wallet::find($request->get('walletid'));
-            $from_wallet->balance = $from_wallet->balance - (float) $request->get('amount');
-
-            $to_wallet = Wallet::find($request->get('to_account'));
-            $to_wallet->balance = $to_wallet->balance + (float) $request->get('amount');
-            
-            //new transaction
-            $transaction = new Transaction;
-            $transaction->userid = $request->get('userid');
-            $transaction->walletid = $request->get('walletid');
-            $transaction->wallet_type = $from_wallet->wallet_type;
-            $transaction->amount = $request->get('amount');
-            $transaction->to_account = $request->get('to_account');
-            $transaction->to_wallet_type = $to_wallet->wallet_type;
-            $transaction->reference = ($request->has('reference') && !empty($request->get('reference'))) ? $request->get('reference') : '';
-            $transaction->transaction_type = 'Internal';
-
-            if($transaction->save() && $from_wallet->save() && $to_wallet->save()){
-                DB::commit();
-                $created = true;
-                NotificationController::new($request->get('userid'), "You have successfully transferred RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " . $to_wallet->wallet_type ." (Internal Transaction).");
+            if($from_wallet->balance < $request->get('amount')){
+                $error = "Insufficient Balance";
             }else{
-                DB::rollback();
-                $created = false;
+                $from_wallet->balance = $from_wallet->balance - (float) $request->get('amount');
+
+                $to_wallet = Wallet::find($request->get('to_account'));
+                $to_wallet->balance = $to_wallet->balance + (float) $request->get('amount');
+                
+                //new transaction
+                $transaction = new Transaction;
+                $transaction->userid = $request->get('userid');
+                $transaction->walletid = $request->get('walletid');
+                $transaction->wallet_type = $from_wallet->wallet_type;
+                $transaction->amount = $request->get('amount');
+                $transaction->to_account = $request->get('to_account');
+                $transaction->to_wallet_type = $to_wallet->wallet_type;
+                $transaction->reference = ($request->has('reference') && !empty($request->get('reference'))) ? $request->get('reference') : '';
+                $transaction->transaction_type = 'Internal';
+    
+                if($transaction->save() && $from_wallet->save() && $to_wallet->save()){
+                    DB::commit();
+                    $created = true;
+                    NotificationController::new($request->get('userid'), "You have successfully transferred RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " . $to_wallet->wallet_type ." (Internal Transaction).");
+                }else{
+                    DB::rollback();
+                    $created = false;
+                }
             }
-
-
         } catch (Throwable $e) {
            $error = $e;
         }
@@ -66,51 +68,58 @@ class TransactionController extends Controller
         try {
             //wallet balance update
             $from_wallet = Wallet::find($request->get('walletid'));
-            $from_wallet->balance = $from_wallet->balance - (float) $request->get('amount');
 
-            if($request->get('to_account_type') == "Linked PayPro Wallet"){
-                $to_wallet = Wallet::find($request->get('to_account'));
-                if($to_wallet == null){
-                    $error = "No wallet found";
-                    return response()->json([
-                        'status' => false,
-                        'created' => $created,
-                        'error' => $error,
-                    ]);
-                }
-                $to_wallet->balance = $to_wallet->balance + (float) $request->get('amount');
-            }
-
-            //new transaction
-            $transaction = new Transaction;
-            $transaction->userid = $request->get('userid');
-            $transaction->walletid = $request->get('walletid');
-            $transaction->wallet_type = $from_wallet->wallet_type;
-            $transaction->amount = $request->get('amount');
-            $transaction->to_account = $request->get('to_account');
-            $transaction->to_wallet_type = $request->get('to_account_type');
-            $transaction->reference = ($request->has('reference') && !empty($request->get('reference'))) ? $request->get('reference') : '';
-            $transaction->transaction_type = 'External';
-
-            if($request->get('to_account_type') == "Linked PayPro Wallet"){
-                if($transaction->save() && $from_wallet->save() && $to_wallet->save()){
-                    DB::commit();
-                    $created = true;
-                    NotificationController::new($request->get('userid'), "You have successfully transferred RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " . $to_wallet->wallet_type ." (External Transaction).");
-                }else{
-                    DB::rollback();
-                    $created = false;
-                }
+            if($from_wallet->balance < $request->get('amount')){
+                $error = "Insufficient Balance";
             }else{
-                if($transaction->save() && $from_wallet->save()){
-                    DB::commit();
-                    $created = true;
-                    NotificationController::new($request->get('userid'), "You have successfully transferred RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " .$request->get('to_account') ." (External Transaction).");
+
+                $from_wallet->balance = $from_wallet->balance - (float) $request->get('amount');
+
+                if($request->get('to_account_type') == "Linked PayPro Wallet"){
+                    $to_wallet = Wallet::find($request->get('to_account'));
+                    if($to_wallet == null){
+                        $error = "No wallet found";
+                        return response()->json([
+                            'status' => false,
+                            'created' => $created,
+                            'error' => $error,
+                        ]);
+                    }
+                    $to_wallet->balance = $to_wallet->balance + (float) $request->get('amount');
+                }
+    
+                //new transaction
+                $transaction = new Transaction;
+                $transaction->userid = $request->get('userid');
+                $transaction->walletid = $request->get('walletid');
+                $transaction->wallet_type = $from_wallet->wallet_type;
+                $transaction->amount = $request->get('amount');
+                $transaction->to_account = $request->get('to_account');
+                $transaction->to_wallet_type = $request->get('to_account_type');
+                $transaction->reference = ($request->has('reference') && !empty($request->get('reference'))) ? $request->get('reference') : '';
+                $transaction->transaction_type = 'External';
+    
+                if($request->get('to_account_type') == "Linked PayPro Wallet"){
+                    if($transaction->save() && $from_wallet->save() && $to_wallet->save()){
+                        DB::commit();
+                        $created = true;
+                        NotificationController::new($request->get('userid'), "You have successfully transferred RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " . $to_wallet->wallet_type ." (External Transaction).");
+                    }else{
+                        DB::rollback();
+                        $created = false;
+                    }
                 }else{
-                    DB::rollback();
-                    $created = false;
+                    if($transaction->save() && $from_wallet->save()){
+                        DB::commit();
+                        $created = true;
+                        NotificationController::new($request->get('userid'), "You have successfully transferred RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " .$request->get('to_account') ." (External Transaction).");
+                    }else{
+                        DB::rollback();
+                        $created = false;
+                    }
                 }
             }
+
            
         } catch (Exception $e) {
            $error = $e;
@@ -166,31 +175,35 @@ class TransactionController extends Controller
             }else{
                //wallet balance update
                 $from_wallet = Wallet::find($payerWallet->preferred_wallet_id);
-                $from_wallet->balance = $from_wallet->balance - (float) $request->get('amount');
-
-                $to_wallet = Wallet::where('userid', $payeeId)->first();
-                $to_wallet->balance = $to_wallet->balance + (float) $request->get('amount');
-                
-                //new transaction
-                $transaction = new Transaction;
-                $transaction->userid = $payerWallet->userid;
-                $transaction->walletid = $from_wallet->id;
-                $transaction->wallet_type = $from_wallet->wallet_type;
-                $transaction->amount = $request->get('amount');
-                $transaction->to_account = $to_wallet->id;
-                $transaction->to_wallet_type = "Biometric";
-                $transaction->reference = ($request->has('reference') && !empty($request->get('reference'))) ? $request->get('reference') : '';
-                $transaction->transaction_type = 'External';
-
-                if($transaction->save() && $from_wallet->save() && $to_wallet->save()){
-                    DB::commit();
-                    $status = true;
-                    NotificationController::new($payerWallet->userid, "You have successfully paid RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " . $to_wallet->wallet_type ." (Biometric Payment).");
-                }else{
-                    DB::rollback();
-                    $created = false;
+                if($from_wallet->balance < $request->get('amount')){
+                    $error = "Insufficient Balance";
                 }
-                
+                else{
+                    $from_wallet->balance = $from_wallet->balance - (float) $request->get('amount');
+
+                    $to_wallet = Wallet::where('userid', $payeeId)->first();
+                    $to_wallet->balance = $to_wallet->balance + (float) $request->get('amount');
+                    
+                    //new transaction
+                    $transaction = new Transaction;
+                    $transaction->userid = $payerWallet->userid;
+                    $transaction->walletid = $from_wallet->id;
+                    $transaction->wallet_type = $from_wallet->wallet_type;
+                    $transaction->amount = $request->get('amount');
+                    $transaction->to_account = $to_wallet->id;
+                    $transaction->to_wallet_type = "Biometric";
+                    $transaction->reference = ($request->has('reference') && !empty($request->get('reference'))) ? $request->get('reference') : '';
+                    $transaction->transaction_type = 'External';
+    
+                    if($transaction->save() && $from_wallet->save() && $to_wallet->save()){
+                        DB::commit();
+                        $status = true;
+                        NotificationController::new($payerWallet->userid, "You have successfully paid RM" . $request->get('amount') ." from " . $from_wallet->wallet_type ." to " . $to_wallet->wallet_type ." (Biometric Payment).");
+                    }else{
+                        DB::rollback();
+                        $created = false;
+                    }
+                }
             }
 
         } 

@@ -61,6 +61,24 @@ class UserController extends Controller
     return response()->json(['authorized' => false, 'error' => 'Unauthorized']);
     }
 
+    public function login_merchant(Request $request)
+    {
+    $credentials = $request->only('email', 'password');
+
+    if (Auth::attempt($credentials)) {
+        $user = Auth::user();
+        if($user->user_type == "Merchant"){
+            $token = $user->createToken('MyApp')->accessToken;
+            return response()->json(['token' => $token,  'authorized' => true, 'userid' => $user->id, 'name' => $user->name, 'email' => $user->email, 'usertype' => $user->user_type, 'phonenumber' => $user->phone_number,], 200);
+        }else{
+            return response()->json(['authorized' => false, 'error' => 'Unauthorized']);
+        }
+       
+    }
+
+    return response()->json(['authorized' => false, 'error' => 'Unauthorized']);
+    }
+
     public function register_merchant(Request $request)
     {
         $created = false;
